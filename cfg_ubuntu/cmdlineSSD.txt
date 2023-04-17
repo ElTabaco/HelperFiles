@@ -1,0 +1,1 @@
+usb-storage.quirks=1058:2642:u dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=LABEL=writable rootfstype=ext4 elevator=deadline rootwait fixrtc quiet
