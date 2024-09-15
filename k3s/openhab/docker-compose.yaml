@@ -4,25 +4,24 @@ services:
 #mqtt
     mosquitto:
         container_name: mqtt
-        #hostname: mosquitto
         restart: always
-        image: eclipse-mosquitto
+        image: eclipse-mosquitto:latest
         ports:
             - 1883:1883
             - 9001:9001
         volumes:
             - ./mqtt/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
             - ./mqtt/data:/mosquitto/data
-            - ./mqtt/log:/mosquitto/log
+#            - ./mqtt/log:/mosquitto/log
         networks:
             - default
 
     openhab:
         container_name: openhab
-        image: openhab/openhab
+        image: openhab/openhab:latest-alpine:latest
         restart: always
         volumes:
-            - ./openhab/addons:/openhab/addons
+#            - ./openhab/addons:/openhab/addons
             - ./openhab/conf:/openhab/conf
             - ./openhab/userdata:/openhab/userdata
         environment:
