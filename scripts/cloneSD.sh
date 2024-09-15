@@ -1,9 +1,10 @@
 #!/bin/bash
 
+sudo fdisk -l
 echo "Clone SD-Card"
 sudo dd bs=4M if=/dev/mmcblk0 of=ssServer_`date +%y%m%d`.img
 echo "Resize Immage"
-
+df -h
 
 # https://askubuntu.com/questions/1174487/re-size-the-img-for-smaller-sd-card-how-to-shrink-a-bootable-sd-card-image
 echo "Resize SD-Card"
