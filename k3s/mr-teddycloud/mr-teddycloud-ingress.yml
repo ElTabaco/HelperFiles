@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: mr-teddycloud
+  name: mr-teddycloud-ingress
+#  annotations:
+#    nginx.ingress.kubernetes.io/rewrite-target: /
+#    traefik.ingress.kubernetes.io/router.entrypoints: web  # Use 'websecure' for HTTPS
+spec:
+  rules:
+  - host: tc.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: 
+            port:
+              number: 80
+#      - path: /web
+#        pathType: Prefix
+#        backend:
+#          service:
+#            name: mr-teddycloud-service
+#            port:
+#              number: 80
+
+# Access the HTTP service via http://tc.com/
+# Access the web HTTP service via http://tc.com/web
+
