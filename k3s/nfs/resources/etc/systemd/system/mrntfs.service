@@ -1,0 +1,12 @@
+[Unit]
+Description=Mr Mount NTFS partition
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/ntfsmount.sh 
+#ExecStart=/bin/mount -t ntfs3 UUID=15EF06366BC5D695 /srv/nfs4
+#ExecStop=/bin/umount /srv/nfs4
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
