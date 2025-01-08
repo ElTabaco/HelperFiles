@@ -7,7 +7,7 @@ metadata:
     usage: mr-teddycloud-pv-data
 spec:
   capacity:
-    storage: 8Gi
+    storage: 32Gi
   storageClassName: nfs
   accessModes:
   - ReadWriteMany
