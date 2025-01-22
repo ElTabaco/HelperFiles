@@ -7,7 +7,7 @@ spec:
   selector:
     app: mr-teddycloud
   type: LoadBalancer
-  loadBalancerIP: 192.168.0.7
+  loadBalancerIP: 192.168.0.2
   ports:
     - port: 80
       targetPort: 80
