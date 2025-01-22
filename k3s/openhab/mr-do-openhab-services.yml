@@ -3,13 +3,11 @@ kind: Service
 metadata:
   namespace: mr-do-openhab
   name: mr-do-openhab-service
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.0.2
 spec:
   selector:
     app: mr-do-openhab
   type: LoadBalancer
-  loadBalancerIP: 192.168.0.246
+  loadBalancerIP: 192.168.0.2
   ports:
     - port: 8081
       targetPort: 8080
