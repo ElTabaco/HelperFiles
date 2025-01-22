@@ -8,9 +8,9 @@ metadata:
 spec:
   capacity:
     storage: 4Gi
-  storageClassName: openhab-nfs
+  storageClassName: nfs
   accessModes:
-    - ReadWriteMany
+  - ReadWriteMany
   volumeMode: Filesystem
   nfs:
     server: mr0.local

@@ -4,7 +4,7 @@ metadata:
   namespace: mr-do-openhab
   name: mr-do-openhab-pvc-data
 spec:
-  storageClassName: openhab-nfs
+  storageClassName: nfs
   accessModes:
     - ReadWriteMany
   resources:
