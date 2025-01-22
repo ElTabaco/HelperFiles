@@ -1,4 +1,3 @@
-#
-sudo kubectl delete -f metallb-ipaddresspool.yml
-#sudo kubectl delete -f metallb-config.yaml
-sudo kubectl delete -f metallb-native.yaml
+kubectl delete -f metallb-ipaddresspool.yml
+#kubectl delete -f metallb-config.yaml
+kubectl delete -f metallb-native.yaml

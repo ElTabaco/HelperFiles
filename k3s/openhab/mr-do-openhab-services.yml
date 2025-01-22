@@ -9,14 +9,18 @@ spec:
   type: LoadBalancer
   loadBalancerIP: 192.168.0.2
   ports:
-    - port: 8081
+    - port: 80
       targetPort: 8080
       protocol: TCP
       name: webinterface
-    - port: 8444
+    - port: 8443
       targetPort: 8443
       protocol: TCP
       name: https-webinterface
+    - port: 5683
+      targetPort: 5683
+      protocol: TCP
+      name: CoIoT-peer
     - port: 8086
       targetPort: 8086
       protocol: TCP
