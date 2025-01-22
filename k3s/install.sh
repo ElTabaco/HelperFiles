@@ -8,7 +8,8 @@ echo https://${IP}:6443
 # https://docs.k3s.io/installation/uninstall
 # docker exec -ti <container_id> reset-password
 sudo apt-get update
-sudo apt-get -y install linux-modules-extra-raspi curl
+# sudo apt-get -y install linux-modules-extra-raspi
+sudo apt-get -y install curl
 sudo apt-get -y install nfs-common
 
 # Master
@@ -26,8 +27,12 @@ sudo curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} K3S_URL=https://${IP}:64
 
 
 # K3S_NODE_NAME="mr00" sh -
-sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --cluster-init --disable=servicelb
-sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --server https://192.168.00.200:6443 --disable=servicelb
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=" - write-kubeconfig=$HOME/local-cluster.config - write-kubeconfig-mode=644" sh -
+./install-k3s.sh --data-dir ~/k3s-data --write-kubeconfig-mode 644 --node-name $(hostname)
+
+
+sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --cluster-init --disable=servicelb --write-kubeconfig-mode 644
+sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --server https://192.168.00.200:6443 --disable=servicelb --write-kubeconfig-mode 644
 sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" K3S_URL=https://192.168.00.200:6443 sh -s - agent
 
 ## Comon

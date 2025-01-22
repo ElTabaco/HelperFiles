@@ -13,11 +13,11 @@
 
 
 
-# sudo docker system -y prune -a && sudo docker container prune -f && sudo docker volume prune && sudo docker image prune -f
+# docker system -y prune -a && sudo docker container prune -f && sudo docker volume prune && sudo docker image prune -f
 
 # docker run -it --rm debian:bookworm-slim /bin/bash
 # docker run -it --rm alpine /bin/sh
 
 # Login
-# sudo docker exec -u root -it <container_id> /bin/bash
+# docker exec -u root -it /bin/bash <container_id> 
 # Ports:   https://www.cyberciti.biz/faq/unix-linux-check-if-port-is-in-use-command/
