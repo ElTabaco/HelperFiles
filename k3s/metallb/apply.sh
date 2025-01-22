@@ -19,12 +19,11 @@ wget https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-
 sed -i 's/{{metal_lb_primary}}-{{metal_lb_secondary}}/192.168.0.3 -192.168.0.29/' metallb-ipaddresspool.yml
 
 # apply manifest
-#sudo kubectl apply -f metallb-config.yaml
-sudo kubectl apply -f metallb-native.yaml
-sudo kubectl apply -f metallb-ipaddresspool.yml
+#kubectl apply -f metallb-config.yaml
+kubectl apply -f metallb-native.yaml
+kubectl apply -f metallb-ipaddresspool.yml
 
-sudo kubectl get pods --all-namespaces -o wide
-
-sudo kubectl get pods -n metallb-system -o wide
-sudo kubectl get all -n metallb-system
-sudo kubectl describe pod controller -n metallb-system
+kubectl get pods --all-namespaces -o wide
+kubectl get pods -n metallb-system -o wide
+kubectl get all -n metallb-system
+kubectl describe pod controller -n metallb-system
