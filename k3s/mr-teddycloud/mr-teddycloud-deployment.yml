@@ -21,6 +21,7 @@ spec:
           image: ghcr.io/toniebox-reverse-engineering/teddycloud:latest
           ports:
             - containerPort: 80 #optional
+            - containerPort: 8443 #optional
             - containerPort: 443 #Port is needed for the connection for the box
           env:
             - name: TZ

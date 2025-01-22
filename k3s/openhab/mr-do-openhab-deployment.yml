@@ -38,6 +38,7 @@ spec:
           image: openhab/openhab:snapshot-alpine
           ports:
             - containerPort: 8080
+            - containerPort: 8443
             - containerPort: 8086
             - containerPort: 9125
             - containerPort: 9126

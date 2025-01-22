@@ -11,10 +11,14 @@ spec:
   type: LoadBalancer
   loadBalancerIP: 192.168.0.246
   ports:
-    - port: 8080
+    - port: 8081
       targetPort: 8080
       protocol: TCP
       name: webinterface
+    - port: 8444
+      targetPort: 8443
+      protocol: TCP
+      name: https-webinterface
     - port: 8086
       targetPort: 8086
       protocol: TCP
