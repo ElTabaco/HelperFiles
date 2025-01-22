@@ -11,9 +11,10 @@ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "192.168.0.4"}}'
 kubectl patch svc argocd-server -n argocd --type='merge' -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "<STATIC_IP>"}}'
 
-
-
-* Get password
+# Get password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
 kubectl get all -n argocd
+
+# Restart all deployments in the test-namespace namespace
+#  kubectl rollout restart deployment -n test-namespace
