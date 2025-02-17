@@ -22,11 +22,11 @@ sudo /usr/local/bin/k3s-uninstall.sh
 * Label nodes with CPU Architecture types:
   * [technotim-live](https://technotim-live.translate.goog/posts/multi-arch-k3s-rpi/?_x_tr_sl=en&_x_tr_tl=de&_x_tr_hl=de&_x_tr_pto=sc)
 ```console
-sudo kubectl label nodes mr1 cputype=arm64
+kubectl label nodes mr1 cputype=arm64
 # or
-sudo kubectl label nodes mr0 cputype=amd64
+kubectl label nodes mr0 cputype=amd64
 
-sudo kubectl describe node nodename
+kubectl describe node nodename
 ```
 
 ## Command helper wiki
@@ -37,23 +37,23 @@ sudo kubectl describe node nodename
 
 * Clone repository
 ```console
-sudo kubectl get nodes --all-namespaces -o wide
+kubectl get nodes --all-namespaces -o wide
 ```
 ### Pod level:
 
 * Get all pods
 ```console
-sudo kubectl get pods --all-namespaces -o wide
-sudo kubectl get svc --all-namespaces -o wide
+kubectl get pods --all-namespaces -o wide
+kubectl get svc --all-namespaces -o wide
 
 ```
 
 * Get pod information
 ```console
-sudo kubectl get pv --all-namespaces -o wide
-sudo kubectl get pvc --all-namespaces -o wide
+kubectl get pv --all-namespaces -o wide
+kubectl get pvc --all-namespaces -o wide
 
-sudo kubectl log <containername>
+kubectl log <containername>
 ```
 
 ### Container level:
@@ -62,8 +62,8 @@ sudo kubectl log <containername>
   * [kubernetes.io/docs](https://kubernetes.io/docs/tasks/debug/debug-application/get-shell-running-container/)
 
 ```console
-sudo kubectl exec --stdin --tty shell-demo -- /bin/bash
-sudo kubectl exec -i -t my-pod --container main-app -- sh
+kubectl exec --stdin --tty shell-demo -- /bin/bash
+kubectl exec -i -t my-pod --container main-app -- sh
 ```
 
 

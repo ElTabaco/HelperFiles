@@ -40,7 +40,7 @@ swapoff -a
 exit
 strace -eopenat kubectl version
 
-sudo kubectl get nodes
+kubectl get nodes
 
 
 

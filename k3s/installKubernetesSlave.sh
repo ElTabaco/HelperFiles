@@ -29,5 +29,5 @@ sudo curl -sfL https://get.k3s.io | K3S_TOKEN="$K3S_TOKEN K3S_URL="https://192.1
 
 
 echo "Check nodes"
-sudo kubectl get nodes
+kubectl get nodes
 
