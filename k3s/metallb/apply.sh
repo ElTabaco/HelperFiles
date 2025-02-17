@@ -16,7 +16,7 @@ sed -i 's/failurePolicy: Fail/failurePolicy: Ignore/' metallb-native.yaml
 wget https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-metallb/templates/metallb-ipaddresspool.yml -O metallb-ipaddresspool.yml
 
 # change addresses to MetalLB endpoints
-sed -i 's/{{metal_lb_primary}}-{{metal_lb_secondary}}/192.168.0.3 -192.168.0.29/' metallb-ipaddresspool.yml
+sed -i 's/{{metal_lb_primary}}-{{metal_lb_secondary}}/192.168.0.2 -192.168.0.29/' metallb-ipaddresspool.yml
 
 # apply manifest
 #kubectl apply -f metallb-config.yaml
