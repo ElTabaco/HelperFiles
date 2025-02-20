@@ -14,26 +14,22 @@ sudo apt-get -y install nfs-common
 
 # Master
 #curl -sfL https://get.k3s.io | sh -s server --cluster-init --token=${SECRET}
-curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} sh -s - server --cluster-init --disable=servicelb --no-deploy=kubernetes-dashboard
+curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} sh -s - server --cluster-init --disable=servicelb --no-deploy=kubernetes-dashboard --write-kubeconfig-mode 644
 
 # Disable ingress on all server
 #--disable traefik
 
 # Master Slave
-curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} sh -s - server --server https://${IP}:6443 --disable=servicelb
+curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} sh -s - server --server https://${IP}:6443 --disable=servicelb --write-kubeconfig-mode 644
 
 # Slave
 sudo curl -sfL https://get.k3s.io | K3S_TOKEN=${SECRET} K3S_URL=https://${IP}:6443 sh -
 
 
 # K3S_NODE_NAME="mr00" sh -
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=" - write-kubeconfig=$HOME/local-cluster.config - write-kubeconfig-mode=644" sh -
-./install-k3s.sh --data-dir ~/k3s-data --write-kubeconfig-mode 644 --node-name $(hostname)
-
-
 sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --cluster-init --disable=servicelb --write-kubeconfig-mode 644
-sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --server https://192.168.00.200:6443 --disable=servicelb --write-kubeconfig-mode 644
-sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" K3S_URL=https://192.168.00.200:6443 sh -s - agent
+sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" sh -s - server --server https://mr0.local:6443 --disable=servicelb --write-kubeconfig-mode 644
+sudo curl -sfL https://get.k3s.io | K3S_TOKEN="mr_cluster_infra_20" K3S_URL=https://mr0.local:6443 sh -s - agent
 
 ## Comon
 #sed -e '/server \\/,$d' -e 's@ExecStart=.*@ExecStart=/usr/local/bin/k3s server@' -i /etc/systemd/system/k3s.service --disable=servicelb

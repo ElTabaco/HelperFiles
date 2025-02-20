@@ -1,15 +1,12 @@
 version: '3.3'
 services:
     rancher:
-        image: 'rancher/rancher:latest'
+        image: rancher/rancher:latest
         container_name: rancher
 #        volumes:
 #            - '/opt/rancher:/var/lib/rancher'
         ports:
             - 8088:80
             - 8448:443
-        #        environment:
-        #            - 'HTTP_PROXY=http://192.168.XX.X1:3128'
-        #            - 'HTTPS_PROXY=http://192.168.XX.X1:3128'
         privileged: true
         restart: unless-stopped
