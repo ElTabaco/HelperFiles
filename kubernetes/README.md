@@ -62,8 +62,12 @@ kubectl log <containername>
   * [kubernetes.io/docs](https://kubernetes.io/docs/tasks/debug/debug-application/get-shell-running-container/)
 
 ```console
-kubectl exec --stdin --tty shell-demo -- /bin/bash
-kubectl exec -i -t my-pod --container main-app -- sh
+kubectl exec -n <NAMESPACE> <POD_NAME> --container <CONTAINER_NAME> -it -- /bin/sh
 ```
 
+#### get ports
+```console
+netstat -tulnp
+lsof -i -P -n
 
+```
