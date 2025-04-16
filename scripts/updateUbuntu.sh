@@ -12,8 +12,8 @@ sudo apt-get --purge remove $(dpkg --list | egrep -i 'linux-image|linux-headers'
 
 echo ">>> Cleaning apt cache..."
 sudo apt -y -f autoremove  --purge
-sudo apt -y -f clean
-sudo apt -y -f autoclean
+sudo apt -y clean
+sudo apt -y autoclean
 sudo apt -y -f autoremove 
 
 echo ">>> Removing backup and leftover config files..."
