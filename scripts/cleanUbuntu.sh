@@ -36,25 +36,24 @@ sudo apt-get -y purge --auto-remove cloud*
 sudo apt-get -y purge --auto-remove snapd plymouth
 sudo apt-get -y purge --auto-remove cryptsetup* avahi-daemon 
 sudo apt-get -y purge --auto-remove appor* ufw
-sudo apt-get -y purge --auto-remove curl
 sudo apt-get -y purge --auto-remove open-vm-tools open-iscsi
 sudo apt-get -y purge --auto-remove pollinate
 sudo apt-get -y purge --auto-remove ubuntu-advantage-tools
-sudo apt-get -y purge --auto-remove \
-    lxd* \
-    landscape-common \
-    unattended-upgrades \
-    cups* \
-    rpcbind \
-    samba* \
-    cloud-init \
-    modemmanager \
-    plymouth \
-    bolt \
-    bluez* \
-    wpasupplicant \
-    ubuntu-server-minimal \
-    ubuntu-server
+sudo apt-get -y purge --auto-remove cloud-init
+#sudo apt-get -y purge --auto-remove \
+#    lxd* \
+#    landscape-common \
+#    unattended-upgrades \
+#    cups* \
+#    rpcbind \
+#    samba* \
+#    modemmanager \
+#    plymouth \
+#    bolt \
+#    bluez* \
+#    wpasupplicant \
+#    ubuntu-server-minimal \
+#    ubuntu-server
 
 sudo service --status-all
 
