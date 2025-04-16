@@ -62,4 +62,4 @@ sudo service --status-all
 
 #sudo apt-get -y autopurge ubuntu-advantage-tools
 sudo apt -y -f autoremove
-sudo apt -y -f autoclean
+sudo apt -y autoclean
