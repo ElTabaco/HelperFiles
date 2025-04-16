@@ -6,8 +6,6 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 echo "Mask not needed Services"
 sudo systemctl stop syslog.socket
 sudo systemctl disable syslog.socket
-sudo systemctl stop rsyslog.service
-sudo systemctl disable rsyslog.service
 
 sudo systemctl stop systemd-journald-dev-log.socket
 sudo systemctl stop systemd-journald.socket
@@ -24,8 +22,6 @@ sudo systemctl disable systemd-logind.service
 
 sudo systemctl stop systemd-journald.service
 sudo systemctl disable systemd-journald.service
-
-sudo systemctl disable accounts-daemon.service
 
 echo "Change runlevel"
 # https://www.systutorials.com/change-systemd-boot-target-linux/
@@ -44,6 +40,22 @@ sudo apt-get -y purge --auto-remove curl
 sudo apt-get -y purge --auto-remove open-vm-tools open-iscsi
 sudo apt-get -y purge --auto-remove pollinate
 sudo apt-get -y purge --auto-remove ubuntu-advantage-tools
+sudo apt-get -y purge --auto-remove \
+    lxd* \
+    landscape-common \
+    unattended-upgrades \
+    cups* \
+    rpcbind \
+    samba* \
+    cloud-init \
+    modemmanager \
+    plymouth \
+    bolt \
+    bluez* \
+    wpasupplicant \
+    ubuntu-server-minimal \
+    ubuntu-server
+
 sudo service --status-all
 
 #sudo apt-get -y purge --auto-remove systemd-journal-remote
