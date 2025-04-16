@@ -17,7 +17,8 @@ sudo apt autoclean
 sudo rm -r -v /boot/firmware/*.bak
 sudo rm -r -v /boot/firmware/overlays/*.bak
 sudo rm -r -v /boot/*.old
-sudo rm -fR -v /var/lib/apt/lists /tmp/* /var/tmp/* ~/.cache
+sudo rm -fR -v /var/lib/apt/lists /tmp/* /var/tmp/*
+sudo rm -rf -v /var/lib/snapd /snap /var/snap /var/log/* /var/cache/* ~/.cache/*
 
 sudo journalctl --vacuum-size=5M
 
@@ -27,14 +28,3 @@ echo "Configuration"
 
 # Chang PW
 # passwd
-
-echo "Snapcast"
-# echo "deb http://ftp.de.debian.org/debian bullseye-backports main" | sudo tee /etc/apt/sources.list.d/snapcast.list > /dev/null
-
-
-#https://askubuntu.com/questions/34074/how-do-i-change-my-username
-#sudo adduser temporary
-#sudo adduser temporary sudo
-
-#sudo usermod -l egg ubuntu
-#sudo usermod -d /home/egg -m egg
