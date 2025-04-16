@@ -15,6 +15,10 @@ _Everyone can contribute and commit solved bugs is welcome_
 sudo /usr/local/bin/k3s-uninstall.sh
 ```
 
+```console
+/usr/local/bin/k3s-agent-uninstall.sh
+```
+
 ## k3s configuration
 
 ### Multi CPU Architecture
