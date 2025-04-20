@@ -23,6 +23,7 @@ sudo apt-get -y purge --auto-remove cryptsetup* avahi-daemon
 sudo apt-get -y purge --auto-remove curl
 sudo apt-get -y purge --auto-remove triggerhappy dphys-swapfile
 sudo apt-get -y purge --auto-remove raspi-config
+sudo apt-get -y purge --auto-remove firmware-nvidia-graphics
 
 sudo apt-get -y purge --auto-remove keyboard-configuration 
 
