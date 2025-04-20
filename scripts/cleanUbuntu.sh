@@ -40,6 +40,7 @@ sudo apt-get -y purge --auto-remove open-vm-tools open-iscsi
 sudo apt-get -y purge --auto-remove pollinate
 sudo apt-get -y purge --auto-remove ubuntu-advantage-tools
 sudo apt-get -y purge --auto-remove cloud-init
+sudo apt-get -y purge --auto-remove firmware-nvidia-graphics
 #sudo apt-get -y purge --auto-remove \
 #    lxd* \
 #    landscape-common \
