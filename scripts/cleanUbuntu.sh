@@ -41,20 +41,19 @@ sudo apt-get -y purge --auto-remove pollinate
 sudo apt-get -y purge --auto-remove ubuntu-advantage-tools
 sudo apt-get -y purge --auto-remove cloud-init
 sudo apt-get -y purge --auto-remove firmware-nvidia-graphics
-#sudo apt-get -y purge --auto-remove \
-#    lxd* \
-#    landscape-common \
-#    unattended-upgrades \
-#    cups* \
-#    rpcbind \
-#    samba* \
-#    modemmanager \
-#    plymouth \
-#    bolt \
-#    bluez* \
-#    wpasupplicant \
-#    ubuntu-server-minimal \
-#    ubuntu-server
+sudo apt-get -y purge --auto-remove \
+    lxd* \
+    landscape-common \
+    unattended-upgrades \
+    cups* \
+    rpcbind \
+    samba* \
+    modemmanager \
+    plymouth \
+    bolt \
+    bluez* \
+    ubuntu-server-minimal \
+    ubuntu-server
 
 sudo service --status-all
 
