@@ -40,4 +40,4 @@ EOF
 sudo systemctl daemon-reexec
 sudo systemctl enable gpio-startup.service
 
-echo "Done! GPIO 4 will be set early in bootloader and finalized by systemd."
+echo "Done! GPIO 4 will be set by systemd."
