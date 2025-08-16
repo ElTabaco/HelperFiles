@@ -1,15 +1,15 @@
-    docker compose down
-    docker compose stop
-    docker compose kill
-    docker compose rm
-    # docker compose pull
-    docker system prune -a
-    docker container prune -f
-    docker image prune
-    docker volume prune
-    docker image prune -f
-    
-    docker compose up -d
+docker compose down
+docker compose stop
+docker compose kill
+yes | docker compose rm
+# docker compose pull
+yes | docker system prune -a
+yes | docker container prune -f
+yes | docker image prune
+yes | docker volume prune
+yes | docker image prune -f
+
+docker compose up -d
 
 
 
