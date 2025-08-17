@@ -6,7 +6,7 @@ echo "Setting up early GPIO pin 4 configuration and startup service..."
 # 1. Make sure raspi-gpio is installed
 sudo apt-get update
 sudo apt-get install -y raspi-gpio
-# sudo apt-get install -y python3-rpi.gpio # Ubuntu
+# sudo apt install -y rpi.gpio-common # Ubuntu
 
 # 2. Create the startup script
 echo "Creating GPIO startup script..."
