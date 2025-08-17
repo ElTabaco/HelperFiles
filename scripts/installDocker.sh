@@ -7,7 +7,7 @@ sudo apt-get update
 
 sudo curl -fsSL https://get.docker.com |bash
 echo "Add user to docker group"
-sudo usermod -aG docker mr
+sudo usermod -aG docker "${USER}"
 
 
 # Needful commands
