@@ -1,29 +1,28 @@
-# https://metallb.universe.tf/installation/
+#!/usr/bin/env bash
+set -euo pipefail
 
-# download manifest
-wget https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml -O metallb-native.yaml
+METALLB_MANIFEST_URL="https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml"
+POOL_TEMPLATE_URL="https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-metallb/templates/metallb-ipaddresspool.yml"
 
-# updating validatingwebhookconfigurations so it does not fail under k3s
-sed -i 's/failurePolicy: Fail/failurePolicy: Ignore/' metallb-native.yaml
+MANIFEST_FILE="metallb-native.yaml"
+POOL_FILE="metallb-ipaddresspool.yml"
+NAMESPACE="metallb-system"
 
-# or
+IP_RANGE_START="192.168.0.2"
+IP_RANGE_END="192.168.0.29"
 
-# kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.10/config/manifests/metallb-native.yaml
+wget -q "${METALLB_MANIFEST_URL}" -O "${MANIFEST_FILE}"
+sed -i 's/failurePolicy: Fail/failurePolicy: Ignore/g' "${MANIFEST_FILE}"
 
-# https://metallb.universe.tf/configuration/
+wget -q "${POOL_TEMPLATE_URL}" -O "${POOL_FILE}"
+sed -i "s|{{metal_lb_primary}}-{{metal_lb_secondary}}|${IP_RANGE_START}-${IP_RANGE_END}|g" "${POOL_FILE}"
 
-# Then create a MetalLB IP address pool to configure the IP addresses MetalLB should allocate.
-wget https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-metallb/templates/metallb-ipaddresspool.yml -O metallb-ipaddresspool.yml
+kubectl apply -f "${MANIFEST_FILE}"
+kubectl rollout status deployment/controller -n "${NAMESPACE}" --timeout=180s
+kubectl rollout status daemonset/speaker -n "${NAMESPACE}" --timeout=180s
 
-# change addresses to MetalLB endpoints
-sed -i 's/{{metal_lb_primary}}-{{metal_lb_secondary}}/192.168.0.2 -192.168.0.29/' metallb-ipaddresspool.yml
+kubectl apply -f "${POOL_FILE}"
 
-# apply manifest
-#kubectl apply -f metallb-config.yaml
-kubectl apply -f metallb-native.yaml
-kubectl apply -f metallb-ipaddresspool.yml
-
-kubectl get pods --all-namespaces -o wide
-kubectl get pods -n metallb-system -o wide
-kubectl get all -n metallb-system
-kubectl describe pod controller -n metallb-system
+kubectl get pods -n "${NAMESPACE}" -o wide
+kubectl get all -n "${NAMESPACE}"
+kubectl get ipaddresspools,l2advertisements -n "${NAMESPACE}"
