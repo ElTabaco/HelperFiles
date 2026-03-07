@@ -39,7 +39,6 @@ done
 
 echo "Still stuck. Current namespace state:"
 kubectl get namespace "${NAMESPACE}" -o yaml || true
-exit 1
 
 
 

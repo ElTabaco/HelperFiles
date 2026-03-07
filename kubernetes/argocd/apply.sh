@@ -1,59 +1,20 @@
-#!/usr/bin/env bash
-set -euo pipefail
+kubectl create namespace argocd
+wget https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -O install.yaml
+# sed -i 's,quay.io/argoproj/argocd,alinbalutoiu/argocd,g' install.yaml
+kubectl apply -f install.yaml -n argocd
 
-NAMESPACE="argocd"
-MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-MANIFEST_FILE="install.yaml"
-CMD_PARAMS_FILE="argocd-cmd-params-cm.yaml"
-LOADBALANCER_IP="192.168.0.4"
+kubectl apply -f argocd-cmd-params-cm.yaml 
 
-echo "Ensuring namespace ${NAMESPACE} exists..."
-kubectl get namespace "${NAMESPACE}" >/dev/null 2>&1 || kubectl create namespace "${NAMESPACE}"
+# Use a LoadBalancer Service (Cloud Environments)
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
-echo "Downloading latest Argo CD manifest..."
-wget -q "${MANIFEST_URL}" -O "${MANIFEST_FILE}"
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "192.168.0.4"}}'
+kubectl patch svc argocd-server -n argocd --type='merge' -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "<STATIC_IP>"}}'
 
-echo "Extracting CRDs..."
-awk '
-BEGIN {file=""}
-/^---$/ {file=""; next}
-/^kind: CustomResourceDefinition$/ {crd=1}
-crd && /^metadata:$/ {meta=1}
-crd {print > "/tmp/argocd-crds.yaml"}
-' "${MANIFEST_FILE}"
+# Get password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
-echo "Applying Argo CD CRDs safely..."
-kubectl create -f /tmp/argocd-crds.yaml 2>/dev/null || kubectl replace -f /tmp/argocd-crds.yaml
+kubectl get all -n argocd
 
-echo "Applying Argo CD install manifest..."
-kubectl apply -f "${MANIFEST_FILE}" -n "${NAMESPACE}" || true
-
-echo "Applying Argo CD cmd params config..."
-kubectl apply -f "${CMD_PARAMS_FILE}"
-
-echo "Restarting argocd-server..."
-kubectl rollout restart deployment argocd-server -n "${NAMESPACE}"
-
-echo "Waiting for Argo CD server..."
-kubectl rollout status deployment argocd-server -n "${NAMESPACE}" --timeout=300s
-
-echo "Patching argocd-server service..."
-kubectl patch svc argocd-server -n "${NAMESPACE}" --type=merge -p "{
-  \"spec\": {
-    \"type\": \"LoadBalancer\",
-    \"loadBalancerIP\": \"${LOADBALANCER_IP}\"
-  }
-}"
-
-echo
-echo "=== Argo CD resources ==="
-kubectl get all -n "${NAMESPACE}"
-
-echo
-echo "=== Argo CD service ==="
-kubectl get svc argocd-server -n "${NAMESPACE}" -o wide
-
-echo
-echo "=== Initial admin password ==="
-kubectl -n "${NAMESPACE}" get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d || true
-echo
+# Restart all deployments in the test-namespace namespace
+#  kubectl rollout restart deployment -n test-namespace
