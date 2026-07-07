@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Fix noot boot7ing USB 3.0 device"
-// https://forums.raspberrypi.com/viewtopic.php?t=285806 
+echo "Fix booting USB 3.0 device"
+# https://forums.raspberrypi.com/viewtopic.php?t=285806 
 
 
 lsusb && lsusb -t

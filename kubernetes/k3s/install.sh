@@ -1,5 +1,5 @@
-SECRET=$0
-IP=$1
+SECRET=$1
+IP=$2
 URL=https://${IP}:6443
 echo https://${IP}:6443
 
