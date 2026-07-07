@@ -2,7 +2,7 @@
 set -euo pipefail
 
 NAMESPACE="argocd"
-MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.4/manifests/install.yaml"
 LOADBALANCER_IP="192.168.0.4"
 
 kubectl get namespace "${NAMESPACE}" >/dev/null 2>&1 || kubectl create namespace "${NAMESPACE}"
