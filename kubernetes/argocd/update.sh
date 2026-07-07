@@ -2,7 +2,7 @@
 set -euo pipefail
 
 NAMESPACE="argocd"
-MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.4/manifests/install.yaml"
 MANIFEST_FILE="install.yaml"
 CMD_PARAMS_FILE="argocd-cmd-params-cm.yaml"
 LOADBALANCER_IP="192.168.0.4"
