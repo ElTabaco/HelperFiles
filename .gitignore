@@ -12,3 +12,6 @@ Thumbs.db
 *.bak
 *.swp
 *.tmp
+
+# Secrets — never commit
+.env
