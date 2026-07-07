@@ -1,20 +1,23 @@
-kubectl create namespace argocd
-wget https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -O install.yaml
-# sed -i 's,quay.io/argoproj/argocd,alinbalutoiu/argocd,g' install.yaml
-kubectl apply -f install.yaml -n argocd
+#!/usr/bin/env bash
+set -euo pipefail
 
-kubectl apply -f argocd-cmd-params-cm.yaml 
+NAMESPACE="argocd"
+MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
+LOADBALANCER_IP="192.168.0.4"
 
-# Use a LoadBalancer Service (Cloud Environments)
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+kubectl get namespace "${NAMESPACE}" >/dev/null 2>&1 || kubectl create namespace "${NAMESPACE}"
 
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "192.168.0.4"}}'
-kubectl patch svc argocd-server -n argocd --type='merge' -p '{"spec": {"type": "LoadBalancer", "loadBalancerIP": "<STATIC_IP>"}}'
+wget -q "${MANIFEST_URL}" -O install.yaml
+kubectl apply -f install.yaml -n "${NAMESPACE}"
+kubectl apply -f argocd-cmd-params-cm.yaml
 
-# Get password
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+# Set LoadBalancer with static IP
+kubectl patch svc argocd-server -n "${NAMESPACE}" --type=merge -p "{\"spec\":{\"type\":\"LoadBalancer\",\"loadBalancerIP\":\"${LOADBALANCER_IP}\"}}"
 
-kubectl get all -n argocd
+# Get initial admin password
+echo ""
+echo "=== Admin password ==="
+kubectl -n "${NAMESPACE}" get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+echo ""
 
-# Restart all deployments in the test-namespace namespace
-#  kubectl rollout restart deployment -n test-namespace
+kubectl get all -n "${NAMESPACE}"

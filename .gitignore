@@ -1,0 +1,14 @@
+# Downloaded manifests (from apply.sh scripts)
+install.yaml
+metallb-native.yaml
+metallb-ipaddresspool.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*~
+*.bak
+*.swp
+*.tmp

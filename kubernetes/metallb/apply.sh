@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-METALLB_MANIFEST_URL="https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml"
+METALLB_MANIFEST_URL="https://raw.githubusercontent.com/metallb/metallb/v0.16.0/config/manifests/metallb-native.yaml"
 POOL_TEMPLATE_URL="https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-metallb/templates/metallb-ipaddresspool.yml"
 
 NAMESPACE="metallb-system"
