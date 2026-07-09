@@ -1,4 +1,4 @@
-docker compose down
+docker compose down --remove-orphans 
 docker compose stop
 docker compose kill
 yes | docker compose rm
