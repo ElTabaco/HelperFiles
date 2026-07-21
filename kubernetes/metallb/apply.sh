@@ -1,52 +1,65 @@
 #!/usr/bin/env bash
+# Install MetalLB on a k3s cluster using the vendored manifests.
+#
+# Usage:
+#   ./apply.sh                          # uses default IP range 192.168.0.2-192.168.0.29
+#   ./apply.sh 192.168.1.100 192.168.1.120   # custom IP range
+#
+# What it does:
+#   1. Applies vendored metallb-native.yaml (v0.16.0, webhook failurePolicy patched to Ignore)
+#   2. Waits for controller + speaker rollout
+#   3. Applies IPAddressPool + L2Advertisement (local, editable)
 set -euo pipefail
 
-METALLB_MANIFEST_URL="https://raw.githubusercontent.com/metallb/metallb/v0.16.0/config/manifests/metallb-native.yaml"
-POOL_TEMPLATE_URL="https://raw.githubusercontent.com/fabianlee/k3s-cluster-kvm/main/roles/k3s-metallb/templates/metallb-ipaddresspool.yml"
-
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAMESPACE="metallb-system"
-POOL_FILE="metallb-ipaddresspool.yml"
-MANIFEST_FILE="metallb-native.yaml"
+MANIFEST="${SCRIPT_DIR}/manifests/metallb-native.yaml"
+POOL="${SCRIPT_DIR}/manifests/ipaddresspool.yaml"
 
-IP_RANGE_START="192.168.0.2"
-IP_RANGE_END="192.168.0.29"
+# IP range — override via args or env
+IP_RANGE_START="${1:-${METALLB_IP_START:-192.168.0.2}}"
+IP_RANGE_END="${2:-${METALLB_IP_END:-192.168.0.29}}"
 
-echo "Downloading MetalLB manifest..."
-wget -q "${METALLB_MANIFEST_URL}" -O "${MANIFEST_FILE}"
+echo "=== MetalLB install ==="
+echo "  namespace:  ${NAMESPACE}"
+echo "  manifest:   ${MANIFEST} (v0.16.0, webhook failurePolicy=Ignore)"
+echo "  IP pool:    ${IP_RANGE_START}-${IP_RANGE_END}"
+echo
 
-echo "Patching webhook failurePolicy for k3s..."
-sed -i 's/failurePolicy: Fail/failurePolicy: Ignore/g' "${MANIFEST_FILE}"
+# Sanity: manifests exist
+if [[ ! -f "${MANIFEST}" || ! -f "${POOL}" ]]; then
+  echo "ERROR: vendored manifest(s) missing. Expected:"
+  echo "  ${MANIFEST}"
+  echo "  ${POOL}"
+  exit 1
+fi
 
-echo "Downloading IPAddressPool template..."
-wget -q "${POOL_TEMPLATE_URL}" -O "${POOL_FILE}"
-
-echo "Replacing IP range in pool template..."
-sed -i "s|{{metal_lb_primary}}-{{metal_lb_secondary}}|${IP_RANGE_START}-${IP_RANGE_END}|g" "${POOL_FILE}"
-
-echo "Checking whether namespace ${NAMESPACE} is still terminating..."
+# Check namespace isn't stuck terminating
 if kubectl get namespace "${NAMESPACE}" >/dev/null 2>&1; then
   ns_phase="$(kubectl get namespace "${NAMESPACE}" -o jsonpath='{.status.phase}')"
-  if [ "${ns_phase}" = "Terminating" ]; then
-    echo "Namespace ${NAMESPACE} is still terminating. Wait until it is gone before reinstalling."
+  if [[ "${ns_phase}" == "Terminating" ]]; then
+    echo "ERROR: namespace ${NAMESPACE} is still Terminating. Wait for it to finish before reinstalling."
     exit 1
   fi
+  echo "Namespace ${NAMESPACE} exists (${ns_phase}), continuing with apply..."
 fi
 
 echo "Applying MetalLB core manifest..."
-kubectl apply -f "${MANIFEST_FILE}"
+kubectl apply -f "${MANIFEST}"
 
-echo "Waiting for MetalLB controller rollout..."
+echo "Waiting for controller rollout..."
 kubectl rollout status deployment/controller -n "${NAMESPACE}" --timeout=180s
 
-echo "Waiting for MetalLB speaker rollout..."
+echo "Waiting for speaker rollout..."
 kubectl rollout status daemonset/speaker -n "${NAMESPACE}" --timeout=180s
 
-echo "Applying MetalLB IPAddressPool and L2Advertisement..."
-kubectl apply -f "${POOL_FILE}"
+# Substitute IP range into the pool manifest via a temp file
+TMP_POOL="$(mktemp)"
+trap 'rm -f "${TMP_POOL}"' EXIT
+sed "s|192.168.0.2-192.168.0.29|${IP_RANGE_START}-${IP_RANGE_END}|g" "${POOL}" > "${TMP_POOL}"
 
-echo
-echo "=== Pods (all namespaces) ==="
-kubectl get pods --all-namespaces -o wide
+echo "Applying IPAddressPool + L2Advertisement (${IP_RANGE_START}-${IP_RANGE_END})..."
+kubectl apply -f "${TMP_POOL}"
 
 echo
 echo "=== MetalLB pods ==="
@@ -57,9 +70,5 @@ echo "=== MetalLB resources ==="
 kubectl get all -n "${NAMESPACE}"
 
 echo
-echo "=== Controller description ==="
-kubectl describe pod -n "${NAMESPACE}" -l app=metallb,component=controller
-
-
-
-kubectl get ipaddresspool -n metallb-system first-pool -o yaml
+echo "=== IPAddressPool ==="
+kubectl get ipaddresspool -n "${NAMESPACE}" -o yaml
