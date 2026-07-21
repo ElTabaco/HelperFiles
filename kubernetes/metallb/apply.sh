@@ -7,13 +7,15 @@
 #
 # What it does:
 #   1. Applies vendored metallb-native.yaml (v0.16.0, webhook failurePolicy patched to Ignore)
-#   2. Waits for controller + speaker rollout
-#   3. Applies IPAddressPool + L2Advertisement (local, editable)
+#   2. Applies auth-delegator RBAC (required for metrics endpoint auth)
+#   3. Waits for controller + speaker rollout
+#   4. Applies IPAddressPool + L2Advertisement (local, editable)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAMESPACE="metallb-system"
 MANIFEST="${SCRIPT_DIR}/manifests/metallb-native.yaml"
+AUTH_DELEGATOR="${SCRIPT_DIR}/manifests/auth-delegator.yaml"
 POOL="${SCRIPT_DIR}/manifests/ipaddresspool.yaml"
 
 # IP range — override via args or env
@@ -46,6 +48,9 @@ fi
 
 echo "Applying MetalLB core manifest..."
 kubectl apply -f "${MANIFEST}"
+
+echo "Applying auth-delegator RBAC (required for metrics endpoint auth)..."
+kubectl apply -f "${AUTH_DELEGATOR}"
 
 echo "Waiting for controller rollout..."
 kubectl rollout status deployment/controller -n "${NAMESPACE}" --timeout=180s

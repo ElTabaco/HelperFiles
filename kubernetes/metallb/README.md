@@ -18,6 +18,7 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--disable servicelb" sh -
 | `apply.sh` | Install MetalLB from vendored manifests |
 | `delete.sh` | Remove MetalLB (handles stuck finalizers from webhooks) |
 | `manifests/metallb-native.yaml` | Vendored MetalLB v0.16.0 (webhook `failurePolicy` patched to `Ignore`) |
+| `manifests/auth-delegator.yaml` | `system:auth-delegator` + auth-reader RBAC (required for metrics endpoint auth) |
 | `manifests/ipaddresspool.yaml` | IPAddressPool + L2Advertisement (edit the IP range here) |
 
 ## Install
@@ -52,7 +53,9 @@ MetalLB ships with `failurePolicy: Fail` on its validating/mutating webhooks. On
 MetalLB v0.16.0 exposes metrics on port **9120 over HTTPS** (the port is literally named `metricshttps` in the pod spec). The upstream manifest bakes in `prometheus.io/scrape: "true"` + `prometheus.io/port: "9120"` annotations, but **annotation-based scraping defaults to HTTP** and can't set `scheme: https` per-target. This means:
 
 - A Prometheus scrape config that filters on `prometheus.io/scrape=true` will hit MetalLB on HTTP and get HTTP 400
-- To actually scrape MetalLB, you need a dedicated job with `scheme: https` + `tls_config.insecure_skip_verify: true`
+- To actually scrape MetalLB, you need a dedicated job with `scheme: https` + `tls_config.insecure_skip_verify: true` + `bearer_token_file`
+
+**Additionally**, MetalLB's metrics endpoint (via controller-runtime) validates the bearer token using the Kubernetes TokenReview API. The controller ServiceAccount needs `system:auth-delegator` to do this — the Helm chart includes it, but the raw upstream manifest does **not**. Without it, every scrape fails with HTTP 500. The `auth-delegator.yaml` manifest in this repo fixes that gap.
 
 Example scrape job (add to your Prometheus config):
 ```yaml
@@ -60,6 +63,7 @@ Example scrape job (add to your Prometheus config):
   scheme: https
   tls_config:
     insecure_skip_verify: true
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
   kubernetes_sd_configs:
     - role: pod
       namespaces:
@@ -68,11 +72,11 @@ Example scrape job (add to your Prometheus config):
     - source_labels: [__meta_kubernetes_pod_label_app]
       action: keep
       regex: metallb
-    - source_labels: [__address__, __meta_kubernetes_pod_container_port_number]
-      action: replace
-      regex: ([^:]+)(?::\d+)?;9120
-      replacement: $1:9120
-      target_label: __address__
+    - source_labels: [__meta_kubernetes_pod_container_port_name]
+      action: keep
+      regex: metricshttps
+    - source_labels: [__meta_kubernetes_pod_label_component]
+      target_label: component
 ```
 
 ## Versions
