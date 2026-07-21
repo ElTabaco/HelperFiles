@@ -7,9 +7,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAMESPACE="metallb-system"
 POOL="${SCRIPT_DIR}/manifests/ipaddresspool.yaml"
 MANIFEST="${SCRIPT_DIR}/manifests/metallb-native.yaml"
+AUTH_DELEGATOR="${SCRIPT_DIR}/manifests/auth-delegator.yaml"
 
 echo "Deleting IPAddressPool + L2Advertisement..."
 kubectl delete -f "${POOL}" --ignore-not-found=true --wait=false || true
+
+echo "Deleting auth-delegator RBAC..."
+kubectl delete -f "${AUTH_DELEGATOR}" --ignore-not-found=true --wait=false || true
 
 echo "Deleting MetalLB core manifest..."
 kubectl delete -f "${MANIFEST}" --ignore-not-found=true --wait=false || true
