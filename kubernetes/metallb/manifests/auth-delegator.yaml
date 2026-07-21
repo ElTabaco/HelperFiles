@@ -1,12 +1,12 @@
-# MetalLB controller metrics endpoint validates bearer tokens via the
-# Kubernetes TokenReview API (controller-runtime v0.22+ behavior). To do
-# that, the controller ServiceAccount needs the system:auth-delegator
-# role — otherwise every authenticated scrape fails with HTTP 500:
+# MetalLB controller AND speaker metrics endpoints validate bearer tokens via
+# the Kubernetes TokenReview API (controller-runtime v0.22+ behavior). Both
+# ServiceAccounts need the system:auth-delegator role — otherwise every
+# authenticated scrape fails with HTTP 500:
 #   "tokenreviews.authentication.k8s.io is forbidden: User
 #    system:serviceaccount:metallb-system:controller cannot create
 #    resource tokenreviews"
 #
-# The Helm chart includes this binding; the raw manifest does not.
+# The Helm chart includes this binding for both SAs; the raw manifest does not.
 # See: https://github.com/metallb/metallb/issues/2432
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -22,9 +22,12 @@ subjects:
   - kind: ServiceAccount
     name: controller
     namespace: metallb-system
+  - kind: ServiceAccount
+    name: speaker
+    namespace: metallb-system
 ---
 # The metrics endpoint also uses SubjectAccessReview to authorize scrapers.
-# The controller needs to create subjectaccessreviews (via auth-delegator
+# Both ServiceAccounts need to create subjectaccessreviews (via auth-delegator
 # above). This binding grants that capability.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -40,4 +43,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: controller
+    namespace: metallb-system
+  - kind: ServiceAccount
+    name: speaker
     namespace: metallb-system
