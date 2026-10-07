@@ -127,3 +127,45 @@ sudo systemctl enable nfs-kernel-server
 ### Conclusion
 
 You've successfully mounted an NTFS SSD drive on startup in Ubuntu and created an NFS4 server to share it over the network without using Samba. The NTFS partition will automatically mount at boot, and the NFS server will be ready to serve the shared directory.
+
+## Monthly backup of the share
+
+`resources/usr/local/bin/backup.sh` archives the whole share once a month. Install it with `filecopy.sh`, then
+`sudo systemctl daemon-reload && sudo systemctl enable --now backup.timer`.
+
+| Item | Value |
+|------|-------|
+| Script | `/usr/local/bin/backup.sh` (bash) |
+| Service | `backup.service`: `Type=oneshot`, runs as root |
+| Timer | `backup.timer`: `OnCalendar=monthly` (1st of the month, 00:00), `Persistent=true` (a missed run starts at the next boot) |
+| Source | `SOURCE_DIR`, default `/srv/nfs4` |
+| Target | `BACKUP_DIR`, default `/home/mr/backup`; archive `backup-YYYY-MM-DD.tar.gz` |
+| Archive layout | members start with `srv/nfs4/...` (same as the archives made before the staging copy) |
+| Staging copy | `$BACKUP_DIR/.staging`, deleted after every run, also after a failure; needs free space for one full copy of `SOURCE_DIR` |
+| Log | `LOG_FILE`, default `/var/log/backup.log`: `Backup of <dir> completed on <date>` or `Backup of <dir> FAILED on <date>: <reason>` |
+| Exit code | `0` = complete archive. `1` = failed (`systemctl status backup.service` shows `failed`): source missing, rsync or tar error (a partial archive is deleted), or rsync could not copy some files (code 23: the archive with everything that was copied is kept, the log names it as incomplete). rsync code 24 (a file vanished during the copy) counts as success |
+| Dependencies | `rsync`, `tar`, `gzip` |
+| Retention | none: old archives stay until you delete them |
+
+Why the staging copy: GNU tar opens every file with `O_NONBLOCK`. On a file that an NFS client holds a delegation
+on (the files the apps keep open, e.g. openHAB rrd4j, Prometheus, Grafana), that open fails with
+`Cannot open: Resource temporarily unavailable`, so tar skipped exactly the live application data (124-127 files per
+run on mr0 in September and October 2026), and the old script still logged `completed`. rsync opens files normally,
+nfsd recalls the delegation, and the copy is complete; tar then archives the local copy.
+
+Test run into a temporary directory (does not touch `/home/mr/backup` or `/var/log/backup.log`):
+
+```bash
+sudo env SOURCE_DIR=/srv/nfs4/homes/mr/mqtt BACKUP_DIR=/tmp/backuptest LOG_FILE=/tmp/backuptest/backup.log \
+  bash /usr/local/bin/backup.sh
+tar -tzf /tmp/backuptest/backup-*.tar.gz | head
+sudo rm -rf /tmp/backuptest
+```
+
+Run the real backup now and check the result:
+
+```bash
+sudo systemctl start backup.service
+systemctl status backup.service --no-pager
+tail -1 /var/log/backup.log
+```
