@@ -8,6 +8,35 @@ _Everyone can contribute and commit solved bugs is welcome_
 
 * See nfs.sh
 
+## Monthly backup (mr0)
+
+`backup.timer` runs `backup.service` (`/usr/local/bin/backup.sh`) monthly and keeps the newest 6 backups.
+
+| Setting | Value |
+|---------|-------|
+| Timer | `OnCalendar=monthly` (1st of the month, 00:00), `Persistent=true` (a missed run starts at the next boot) |
+| `SOURCE_DIR` | `/srv/nfs4` |
+| `BACKUP_DIR` | `/home/mr/backup` |
+| File name | `backup-YYYY-MM-DD.tar.gz` (tar + gzip); written as `backup-YYYY-MM-DD.tar.gz.part` and renamed when tar succeeds |
+| `KEEP` | `6` — after a successful backup, the oldest `backup-YYYY-MM-DD.tar.gz` files beyond the newest 6 are deleted. Other files in `BACKUP_DIR` are never touched. |
+| `LOG_FILE` | `/var/log/backup.log` (one line per backup, failure and deleted backup) |
+
+* If tar fails (exit code > 1) the `.part` file is removed, nothing is deleted and the service exits with code 1. Exit code 1 (files changed while being read) is accepted.
+* `KEEP` must be a number >= 1; otherwise nothing is deleted.
+* All variables can be overridden from the environment for a test run, e.g. `SOURCE_DIR=/tmp/src BACKUP_DIR=/tmp/bk LOG_FILE=/tmp/log KEEP=2 /usr/local/bin/backup.sh`.
+
+Install or update:
+
+```console
+cd kubernetes/nfs && ./filecopy.sh
+sudo systemctl daemon-reload
+sudo systemctl enable --now backup.timer
+systemctl list-timers backup.timer
+# manual run
+sudo systemctl start backup.service
+tail /var/log/backup.log
+```
+
 # manual mount and umount
 
 * mount
