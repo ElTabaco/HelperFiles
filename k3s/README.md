@@ -26,7 +26,7 @@ sudo /usr/local/bin/k3s-uninstall.sh
 * Label nodes with CPU Architecture types:
   * [technotim-live](https://technotim-live.translate.goog/posts/multi-arch-k3s-rpi/?_x_tr_sl=en&_x_tr_tl=de&_x_tr_hl=de&_x_tr_pto=sc)
 ```console
-kubectl label nodes mr1 cputype=arm64
+kubectl label nodes <arm64-node> cputype=arm64
 # or
 kubectl label nodes mr0 cputype=amd64
 
