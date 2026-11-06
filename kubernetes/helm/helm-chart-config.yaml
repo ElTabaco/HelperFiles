@@ -9,14 +9,16 @@ spec:
       - "--api"
       - "--api.dashboard=true"
       - "--api.insecure=true"
-      - "--log.level=DEBUG"
+      - "--log.level=INFO"
       - "--certificatesresolvers.myresolver.acme.email=xxxxxxx@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.caServer=https://acme-v02.api.letsencrypt.org/directory"
     ports:
       traefik:
-        expose: true
+        expose:
+          default: true
+        exposedPort: 9000
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
