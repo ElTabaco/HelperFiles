@@ -10,20 +10,34 @@ _Everyone can contribute and commit solved bugs is welcome_
 
 ## Monthly backup (mr0)
 
-`backup.timer` runs `backup.service` (`/usr/local/bin/backup.sh`) monthly and keeps the newest 6 backups.
+`backup.timer` runs `backup.service` (`/usr/local/bin/backup.sh`) monthly. Every application gets its own backup,
+and the newest 6 backups of each application are kept.
 
 | Setting | Value |
 |---------|-------|
 | Timer | `OnCalendar=monthly` (1st of the month, 00:00), `Persistent=true` (a missed run starts at the next boot) |
-| `SOURCE_DIR` | `/srv/nfs4` |
-| `BACKUP_DIR` | `/home/mr/backup` |
-| File name | `backup-YYYY-MM-DD.tar.gz` (tar + gzip); written as `backup-YYYY-MM-DD.tar.gz.part` and renamed when tar succeeds |
-| `KEEP` | `6` — after a successful backup, the oldest `backup-YYYY-MM-DD.tar.gz` files beyond the newest 6 are deleted. Other files in `BACKUP_DIR` are never touched. |
-| `LOG_FILE` | `/var/log/backup.log` (one line per backup, failure and deleted backup) |
+| Service | `backup.service`, `Type=oneshot`, runs as root |
+| `SOURCE_DIR` | `/srv/nfs4/homes/mr` — every directory directly below it is one application (currently `jellyfin`, `media`, `mqtt`, `observer`, `openhab`, `teddycloud`). A new application directory is backed up automatically. Files and symlinks directly in `SOURCE_DIR` are not backed up (logged as `Skipped`); hidden directories (`.name`) are ignored. |
+| `BACKUP_DIR` | `/home/mr/backup` — one sub directory per application: `/home/mr/backup/<application>/` |
+| File name | `<application>-YYYY-MM-DD.tar.gz` (tar + gzip), e.g. `/home/mr/backup/openhab/openhab-2026-12-01.tar.gz`; written as `<application>-YYYY-MM-DD.tar.gz.part` and renamed when tar succeeds. A second run on the same day replaces the file of that day. |
+| Paths in the archive | relative, starting with `<application>/` (e.g. `openhab/openhab/conf/...`) |
+| `EXCLUDES` | `teddycloud:library` — space separated list of `<application>:<path below the application directory>` (no spaces in the path). The content of such a directory is not backed up; the empty directory itself stays in the archive. `teddycloud/library` is the audio library (several GB). `EXCLUDES=""` disables all excludes. |
+| `KEEP` | `6` — per application: after a successful backup of an application, its oldest `<application>-YYYY-MM-DD.tar.gz` files beyond the newest 6 are deleted. Other files in `BACKUP_DIR` are never touched. |
+| `LOG_FILE` | `/var/log/backup.log` (one line per application backup, failure, skipped entry and deleted backup) |
 
-* If tar fails (exit code > 1) the `.part` file is removed, nothing is deleted and the service exits with code 1. Exit code 1 (files changed while being read) is accepted.
-* `KEEP` must be a number >= 1; otherwise nothing is deleted.
-* All variables can be overridden from the environment for a test run, e.g. `SOURCE_DIR=/tmp/src BACKUP_DIR=/tmp/bk LOG_FILE=/tmp/log KEEP=2 /usr/local/bin/backup.sh`.
+* The applications are independent: if tar fails for one application (exit code > 1), its `.part` file is removed, none of its backups are deleted, the other applications are still backed up and the service exits with code 1. Tar exit code 1 (files changed while being read) is accepted.
+* If `SOURCE_DIR` is missing or contains no directory, nothing is done and the service exits with code 1.
+* `KEEP` must be a number >= 1; otherwise the backups are created, nothing is deleted and the service exits with code 1.
+* All variables can be overridden from the environment for a test run, e.g. `SOURCE_DIR=/tmp/src BACKUP_DIR=/tmp/bk LOG_FILE=/tmp/log KEEP=2 EXCLUDES="app:cache" /usr/local/bin/backup.sh`.
+
+Restore one application (stop the application first; the excluded `teddycloud/library` content is not in the backup and stays as it is on disk):
+
+```console
+# list
+tar -tzf /home/mr/backup/openhab/openhab-YYYY-MM-DD.tar.gz
+# restore into the share
+sudo tar -xzf /home/mr/backup/openhab/openhab-YYYY-MM-DD.tar.gz -C /srv/nfs4/homes/mr
+```
 
 Install or update:
 

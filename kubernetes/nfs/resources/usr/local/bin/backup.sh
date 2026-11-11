@@ -9,51 +9,108 @@
 # sudo systemctl start backup.service
 
 # Variables (can be overridden from the environment, e.g. for a test run)
-SOURCE_DIR="${SOURCE_DIR:-/srv/nfs4}"
+# Every directory directly below SOURCE_DIR is one application and gets its own backup.
+SOURCE_DIR="${SOURCE_DIR:-/srv/nfs4/homes/mr}"
 BACKUP_DIR="${BACKUP_DIR:-/home/mr/backup}"
 LOG_FILE="${LOG_FILE:-/var/log/backup.log}"
-# Number of backups to keep (including the new one); older backups are deleted
+# Number of backups to keep per application (including the new one); older backups are deleted
 KEEP="${KEEP:-6}"
+# Directories that are not backed up: space separated list of <application>:<path below the application directory>.
+# The directory itself stays in the backup (empty), only its content is left out. EXCLUDES="" = no exclude.
+EXCLUDES="${EXCLUDES-teddycloud:library}"
 DATE=$(date +\%Y-\%m-\%d)
-BACKUP_FILE="$BACKUP_DIR/backup-$DATE.tar.gz"
 
-# Create backup directory if it does not exist
-mkdir -p "$BACKUP_DIR"
+log() {
+    echo "$1" >> "$LOG_FILE"
+}
 
-# Create a compressed archive of the source directory.
-# Write to a .part file first, so a failed or interrupted run never counts as a backup.
-tar -czvf "$BACKUP_FILE.part" "$SOURCE_DIR"
-RC=$?
-# tar exit code 1 = some files changed while being read (normal on a live share), archive is valid
-if [ "$RC" -gt 1 ] || [ ! -s "$BACKUP_FILE.part" ]; then
-    rm -f "$BACKUP_FILE.part"
-    echo "Backup of $SOURCE_DIR FAILED on $DATE (tar exit code $RC), no backups deleted" >> "$LOG_FILE"
+# Backup of one application: $BACKUP_DIR/<application>/<application>-YYYY-MM-DD.tar.gz
+backup_app() {
+    local APP="$1"
+    local APP_BACKUP_DIR="$BACKUP_DIR/$APP"
+    local BACKUP_FILE="$APP_BACKUP_DIR/$APP-$DATE.tar.gz"
+    local EXCLUDE_ARGS=()
+    local EXCLUDED=""
+    local ENTRY EXCLUDE_PATH RC OLD
+
+    for ENTRY in $EXCLUDES; do
+        if [ "${ENTRY%%:*}" = "$APP" ]; then
+            EXCLUDE_PATH="${ENTRY#*:}"
+            EXCLUDE_PATH="${EXCLUDE_PATH%/}"
+            EXCLUDE_ARGS+=(--anchored "--exclude=$APP/$EXCLUDE_PATH/*")
+            EXCLUDED="$EXCLUDED $EXCLUDE_PATH"
+        fi
+    done
+
+    # Create backup directory if it does not exist
+    if ! mkdir -p "$APP_BACKUP_DIR"; then
+        log "Backup of $SOURCE_DIR/$APP FAILED on $DATE (cannot create $APP_BACKUP_DIR), no backups deleted"
+        return 1
+    fi
+
+    # Create a compressed archive of the application directory (paths in the archive start with <application>/).
+    # Write to a .part file first, so a failed or interrupted run never counts as a backup.
+    tar -C "$SOURCE_DIR" "${EXCLUDE_ARGS[@]}" -czvf "$BACKUP_FILE.part" "$APP"
+    RC=$?
+    # tar exit code 1 = some files changed while being read (normal on a live share), archive is valid
+    if [ "$RC" -gt 1 ] || [ ! -s "$BACKUP_FILE.part" ]; then
+        rm -f "$BACKUP_FILE.part"
+        log "Backup of $SOURCE_DIR/$APP FAILED on $DATE (tar exit code $RC), no backups deleted"
+        return 1
+    fi
+    if ! mv -f "$BACKUP_FILE.part" "$BACKUP_FILE"; then
+        rm -f "$BACKUP_FILE.part"
+        log "Backup of $SOURCE_DIR/$APP FAILED on $DATE (cannot write $BACKUP_FILE), no backups deleted"
+        return 1
+    fi
+
+    # Log the backup operation
+    log "Backup of $SOURCE_DIR/$APP completed on $DATE${EXCLUDED:+ (content not included:$EXCLUDED)}"
+
+    # Retention: keep the newest $KEEP backups of this application, delete the oldest.
+    # File names contain the date (<application>-YYYY-MM-DD.tar.gz), so name order = age order.
+    if [ "$KEEP_VALID" != 1 ]; then
+        return 1
+    fi
+    printf '%s\n' "$APP_BACKUP_DIR/$APP"-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].tar.gz | sort | head -n -"$KEEP" |
+    while read -r OLD; do
+        [ -f "$OLD" ] && rm -f "$OLD" && log "Deleted old backup $APP/$(basename "$OLD") (keep $KEEP)"
+    done
+    return 0
+}
+
+KEEP_VALID=1
+if ! [ "$KEEP" -ge 1 ] 2>/dev/null; then
+    KEEP_VALID=0
+    log "Invalid KEEP=$KEEP, no backups deleted"
+fi
+
+# One backup per application directory. A failed application does not stop the others.
+FAILED=0
+COUNT=0
+for APP_DIR in "$SOURCE_DIR"/*; do
+    [ -e "$APP_DIR" ] || [ -L "$APP_DIR" ] || continue
+    if [ -L "$APP_DIR" ] || [ ! -d "$APP_DIR" ]; then
+        log "Skipped $APP_DIR on $DATE (not a directory, not part of any application backup)"
+        continue
+    fi
+    COUNT=$((COUNT + 1))
+    backup_app "$(basename "$APP_DIR")" || FAILED=1
+done
+
+if [ "$COUNT" -eq 0 ]; then
+    log "Backup FAILED on $DATE (no application directory in $SOURCE_DIR), no backups deleted"
     exit 1
 fi
-mv -f "$BACKUP_FILE.part" "$BACKUP_FILE"
 
-# Optionally, you can use rsync to transfer the backup to another server/location
+# Optionally, you can use rsync to transfer the backups to another server/location
 # RSYNC_USER="your_username"
 # RSYNC_HOST="your_backup_server"
 # RSYNC_DEST="/remote/backup/location"
-# rsync -avz "$BACKUP_FILE" "$RSYNC_USER@$RSYNC_HOST:$RSYNC_DEST"
+# rsync -avz "$BACKUP_DIR/" "$RSYNC_USER@$RSYNC_HOST:$RSYNC_DEST"
 
-# Log the backup operation
-echo "Backup of $SOURCE_DIR completed on $DATE" >> "$LOG_FILE"
+# To unpack or extract the backup of one application, type
+# tar -xzvf <application>-YYYY-MM-DD.tar.gz -C /srv/nfs4/homes/mr
 
-# Retention: keep the newest $KEEP backups, delete the oldest.
-# File names contain the date (backup-YYYY-MM-DD.tar.gz), so name order = age order.
-if ! [ "$KEEP" -ge 1 ] 2>/dev/null; then
-    echo "Invalid KEEP=$KEEP, no backups deleted" >> "$LOG_FILE"
-    exit 1
-fi
-ls -1 "$BACKUP_DIR" | grep -E '^backup-[0-9]{4}-[0-9]{2}-[0-9]{2}\.tar\.gz$' | sort | head -n -"$KEEP" |
-while read -r OLD; do
-    rm -f "$BACKUP_DIR/$OLD" && echo "Deleted old backup $OLD (keep $KEEP)" >> "$LOG_FILE"
-done
-
-# To unpack or extract a tar file, type
-# tar -xvf file.tar
-
-
-
+# Exit code 1 if at least one application failed (the other applications are still backed up)
+exit "$FAILED"
