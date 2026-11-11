@@ -21,7 +21,7 @@ and the newest 6 backups of each application are kept.
 | `BACKUP_DIR` | `/home/mr/backup` — one sub directory per application: `/home/mr/backup/<application>/` |
 | File name | `<application>-YYYY-MM-DD.tar.gz` (tar + gzip), e.g. `/home/mr/backup/openhab/openhab-2026-12-01.tar.gz`; written as `<application>-YYYY-MM-DD.tar.gz.part` and renamed when tar succeeds. A second run on the same day replaces the file of that day. |
 | Paths in the archive | relative, starting with `<application>/` (e.g. `openhab/openhab/conf/...`) |
-| `EXCLUDES` | `teddycloud:library` — space separated list of `<application>:<path below the application directory>` (no spaces in the path). The content of such a directory is not backed up; the empty directory itself stays in the archive. `teddycloud/library` is the audio library (several GB). `EXCLUDES=""` disables all excludes. |
+| `EXCLUDES` | `teddycloud:library observer:prometheus` — space separated list of `<application>:<path below the application directory>` (no spaces in the path). The content of such a directory is not backed up; the empty directory itself stays in the archive. `teddycloud/library` is the audio library (several GB). `observer/prometheus` is the logged data of the observer: the Prometheus time series database (metrics of the last 30 days, about 2.5 GB); the Grafana data (`observer/grafana`: `grafana.db`, dashboards, plugins) is backed up. `EXCLUDES=""` disables all excludes. |
 | `KEEP` | `6` — per application: after a successful backup of an application, its oldest `<application>-YYYY-MM-DD.tar.gz` files beyond the newest 6 are deleted. Other files in `BACKUP_DIR` are never touched. |
 | `LOG_FILE` | `/var/log/backup.log` (one line per application backup, failure, skipped entry and deleted backup) |
 
@@ -30,7 +30,7 @@ and the newest 6 backups of each application are kept.
 * `KEEP` must be a number >= 1; otherwise the backups are created, nothing is deleted and the service exits with code 1.
 * All variables can be overridden from the environment for a test run, e.g. `SOURCE_DIR=/tmp/src BACKUP_DIR=/tmp/bk LOG_FILE=/tmp/log KEEP=2 EXCLUDES="app:cache" /usr/local/bin/backup.sh`.
 
-Restore one application (stop the application first; the excluded `teddycloud/library` content is not in the backup and stays as it is on disk):
+Restore one application (stop the application first; the excluded content, `teddycloud/library` and `observer/prometheus`, is not in the backup and stays as it is on disk):
 
 ```console
 # list

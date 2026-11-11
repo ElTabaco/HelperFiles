@@ -17,7 +17,8 @@ LOG_FILE="${LOG_FILE:-/var/log/backup.log}"
 KEEP="${KEEP:-6}"
 # Directories that are not backed up: space separated list of <application>:<path below the application directory>.
 # The directory itself stays in the backup (empty), only its content is left out. EXCLUDES="" = no exclude.
-EXCLUDES="${EXCLUDES-teddycloud:library}"
+# teddycloud:library = audio library, observer:prometheus = logged metrics (Prometheus time series database)
+EXCLUDES="${EXCLUDES-teddycloud:library observer:prometheus}"
 DATE=$(date +\%Y-\%m-\%d)
 
 log() {
